@@ -20,21 +20,6 @@ package org.apache.maven.caching;
  */
 
 
-import com.google.common.collect.Lists;
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.DefaultArtifact;
-import org.apache.maven.artifact.handler.DefaultArtifactHandler;
-import org.apache.maven.caching.hash.HashFactory;
-import org.apache.maven.caching.domain.ArtifactType;
-import org.apache.maven.caching.domain.BuildInfoType;
-import org.apache.maven.caching.domain.CompletedExecutionType;
-import org.apache.maven.caching.domain.DigestItemType;
-import org.apache.maven.caching.domain.ProjectsInputInfoType;
-import org.apache.maven.caching.domain.PropertyValueType;
-import org.apache.maven.caching.xml.BuildInfo;
-import org.apache.maven.caching.xml.XmlService;
-import org.junit.Test;
-
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -44,6 +29,21 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+
+import com.google.common.collect.Lists;
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.DefaultArtifact;
+import org.apache.maven.artifact.handler.DefaultArtifactHandler;
+import org.apache.maven.caching.domain.ArtifactType;
+import org.apache.maven.caching.domain.BuildInfoType;
+import org.apache.maven.caching.domain.CompletedExecutionType;
+import org.apache.maven.caching.domain.DigestItemType;
+import org.apache.maven.caching.domain.ProjectsInputInfoType;
+import org.apache.maven.caching.domain.PropertyValueType;
+import org.apache.maven.caching.hash.HashFactory;
+import org.apache.maven.caching.xml.BuildInfo;
+import org.apache.maven.caching.xml.XmlService;
+import org.junit.Test;
 
 public class BuildInfoTest {
 

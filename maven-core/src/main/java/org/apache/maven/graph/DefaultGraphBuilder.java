@@ -34,11 +34,9 @@ import org.apache.maven.DefaultMaven;
 import org.apache.maven.MavenExecutionException;
 import org.apache.maven.ProjectCycleException;
 import org.apache.maven.artifact.ArtifactUtils;
-import org.apache.maven.caching.checksum.KeyUtils;
 import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.execution.ProjectDependencyGraph;
-import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.building.DefaultModelProblem;
 import org.apache.maven.model.building.ModelProblem;
@@ -58,17 +56,13 @@ import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.plexus.util.dag.CycleDetectedException;
 
-import static org.apache.maven.artifact.versioning.VersionRange.createFromVersion;
-
 /**
  * Builds the {@link ProjectDependencyGraph inter-dependencies graph} between projects in the reactor.
  */
 @Component( role = GraphBuilder.class, hint = GraphBuilder.HINT )
 public class DefaultGraphBuilder
-    implements GraphBuilder
+        implements GraphBuilder
 {
-
-    public static final String PROJECT_VERSION_PROP_NAME = "org.maven.project.version";
 
     @Requirement
     private Logger logger;
@@ -87,11 +81,6 @@ public class DefaultGraphBuilder
             {
                 final List<MavenProject> projects = getProjectsForMavenReactor( session );
                 validateProjects( projects );
-
-                if ( System.getProperties().containsKey( PROJECT_VERSION_PROP_NAME ) )
-                {
-                    overrideReactorVersions( projects, session );
-                }
                 result = reactorDependencyGraph( session, projects );
             }
 
@@ -111,77 +100,15 @@ public class DefaultGraphBuilder
         }
     }
 
-    private void overrideReactorVersions( List<MavenProject> projects, MavenSession session )
-    {
-        String injectedVersion = System.getProperty( PROJECT_VERSION_PROP_NAME );
-        logger.info( "Overriding reactor projects version to " + injectedVersion );
-
-        Map<String, String> reactorProjects = new HashMap<>( projects.size() );
-
-        for ( MavenProject project : projects )
-        {
-            String projectKey = KeyUtils.getVersionlessProjectKey( project );
-            logger.debug(
-                    "[" + projectKey + "] Overriding version from " + project.getVersion() + " to " + injectedVersion );
-            reactorProjects.put( projectKey, project.getVersion() );
-            project.setVersion( injectedVersion );
-            project.getArtifact().setVersionRange( createFromVersion( injectedVersion ) );
-            project.getArtifact().updateVersion( injectedVersion, session.getLocalRepository() );
-        }
-
-        for ( MavenProject project : projects )
-        {
-            String projectKey = KeyUtils.getVersionlessProjectKey( project );
-            MavenProject parent = project.getParent();
-            String parentKey = KeyUtils.getVersionlessProjectKey( parent );
-            String overriddenParentVersion = reactorProjects.get( parentKey );
-            if ( overriddenParentVersion != null && overriddenParentVersion.equals(
-                    project.getParentArtifact().getVersion() ) )
-            {
-                logger.debug(
-                        "[" + projectKey + "] Parent " + parentKey + " overriding artefact version from "
-                                + parent.getVersion() + " to " + injectedVersion );
-                project.getParentArtifact().setVersionRange( createFromVersion( injectedVersion ) );
-                project.getParentArtifact().updateVersion( injectedVersion, session.getLocalRepository() );
-            }
-
-            for ( Dependency dependency : project.getDependencies() )
-            {
-                String dependencyKey = KeyUtils.getVersionlessDependencyKey( dependency );
-                String overriddenReactorVersion = reactorProjects.get( dependencyKey );
-                if ( overriddenReactorVersion != null && overriddenReactorVersion.equals( dependency.getVersion() ) )
-                {
-                    logger.debug(
-                            "[" + projectKey + "] Dependency " + dependencyKey + " overriding version from "
-                                    + dependency.getVersion() + " to " + injectedVersion );
-                    dependency.setVersion( injectedVersion );
-                }
-            }
-
-            for ( Dependency dependency : project.getDependencyManagement().getDependencies() )
-            {
-                String dependencyKey = KeyUtils.getVersionlessDependencyKey( dependency );
-                String overriddenReactorVersion = reactorProjects.get( dependencyKey );
-                if ( overriddenReactorVersion != null && overriddenReactorVersion.equals( dependency.getVersion() ) )
-                {
-                    logger.debug(
-                            "[" + projectKey + "] Dependency management " + dependencyKey
-                                   + " overriding version from " + dependency.getVersion() + " to " + injectedVersion );
-                    dependency.setVersion( injectedVersion );
-                }
-            }
-        }
-    }
-
     private Result<ProjectDependencyGraph> sessionDependencyGraph( final MavenSession session )
-        throws CycleDetectedException, DuplicateProjectException
+            throws CycleDetectedException, DuplicateProjectException
     {
         Result<ProjectDependencyGraph> result = null;
 
         if ( session.getProjectDependencyGraph() != null || session.getProjects() != null )
         {
             final ProjectDependencyGraph graph =
-                new DefaultProjectDependencyGraph( session.getAllProjects(), session.getProjects() );
+                    new DefaultProjectDependencyGraph( session.getAllProjects(), session.getProjects() );
 
             result = Result.success( graph );
         }
@@ -190,7 +117,7 @@ public class DefaultGraphBuilder
     }
 
     private Result<ProjectDependencyGraph> reactorDependencyGraph( MavenSession session, List<MavenProject> projects )
-        throws CycleDetectedException, DuplicateProjectException, MavenExecutionException
+            throws CycleDetectedException, DuplicateProjectException, MavenExecutionException
     {
         ProjectDependencyGraph projectDependencyGraph = new DefaultProjectDependencyGraph( projects );
         List<MavenProject> activeProjects = projectDependencyGraph.getSortedProjects();
@@ -208,7 +135,7 @@ public class DefaultGraphBuilder
 
     private List<MavenProject> trimSelectedProjects( List<MavenProject> projects, ProjectDependencyGraph graph,
                                                      MavenExecutionRequest request )
-        throws MavenExecutionException
+            throws MavenExecutionException
     {
         List<MavenProject> result = projects;
 
@@ -242,7 +169,7 @@ public class DefaultGraphBuilder
                 else
                 {
                     throw new MavenExecutionException( "Could not find the selected project in the reactor: "
-                        + selector, request.getPom() );
+                            + selector, request.getPom() );
                 }
             }
 
@@ -265,7 +192,7 @@ public class DefaultGraphBuilder
             else if ( StringUtils.isNotEmpty( request.getMakeBehavior() ) )
             {
                 throw new MavenExecutionException( "Invalid reactor make behavior: " + request.getMakeBehavior(),
-                                                   request.getPom() );
+                        request.getPom() );
             }
 
             if ( makeUpstream || makeDownstream )
@@ -298,7 +225,7 @@ public class DefaultGraphBuilder
     }
 
     private List<MavenProject> trimExcludedProjects( List<MavenProject> projects, MavenExecutionRequest request )
-        throws MavenExecutionException
+            throws MavenExecutionException
     {
         List<MavenProject> result = projects;
 
@@ -333,7 +260,7 @@ public class DefaultGraphBuilder
                 else
                 {
                     throw new MavenExecutionException( "Could not find the selected project in the reactor: "
-                        + selector, request.getPom() );
+                            + selector, request.getPom() );
                 }
             }
 
@@ -351,7 +278,7 @@ public class DefaultGraphBuilder
     }
 
     private List<MavenProject> trimResumedProjects( List<MavenProject> projects, MavenExecutionRequest request )
-        throws MavenExecutionException
+            throws MavenExecutionException
     {
         List<MavenProject> result = projects;
 
@@ -385,7 +312,7 @@ public class DefaultGraphBuilder
             if ( !resumed )
             {
                 throw new MavenExecutionException( "Could not find project to resume reactor build from: " + selector
-                    + " vs " + formatProjects( projects ), request.getPom() );
+                        + " vs " + formatProjects( projects ), request.getPom() );
             }
         }
 
@@ -453,7 +380,7 @@ public class DefaultGraphBuilder
     // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     private List<MavenProject> getProjectsForMavenReactor( MavenSession session )
-        throws ProjectBuildingException
+            throws ProjectBuildingException
     {
         MavenExecutionRequest request = session.getRequest();
 
@@ -467,7 +394,7 @@ public class DefaultGraphBuilder
         {
             ModelSource modelSource = new UrlModelSource( DefaultMaven.class.getResource( "project/standalone.xml" ) );
             MavenProject project = projectBuilder.build( modelSource, request.getProjectBuildingRequest() )
-                .getProject();
+                    .getProject();
             project.setExecutionRoot( true );
             projects.add( project );
             request.setProjectPresent( false );
@@ -480,12 +407,12 @@ public class DefaultGraphBuilder
     }
 
     private void collectProjects( List<MavenProject> projects, List<File> files, MavenExecutionRequest request )
-        throws ProjectBuildingException
+            throws ProjectBuildingException
     {
         ProjectBuildingRequest projectBuildingRequest = request.getProjectBuildingRequest();
 
         List<ProjectBuildingResult> results = projectBuilder.build( files, request.isRecursive(),
-                                                                    projectBuildingRequest );
+                projectBuildingRequest );
 
         boolean problems = false;
 
@@ -497,7 +424,7 @@ public class DefaultGraphBuilder
             {
                 logger.warn( "" );
                 logger.warn( "Some problems were encountered while building the effective model for "
-                    + result.getProject().getId() );
+                        + result.getProject().getId() );
 
                 for ( ModelProblem problem : result.getProblems() )
                 {
@@ -513,10 +440,10 @@ public class DefaultGraphBuilder
         {
             logger.warn( "" );
             logger.warn( "It is highly recommended to fix these problems"
-                + " because they threaten the stability of your build." );
+                    + " because they threaten the stability of your build." );
             logger.warn( "" );
             logger.warn( "For this reason, future Maven versions might no"
-                + " longer support building such malformed projects." );
+                    + " longer support building such malformed projects." );
             logger.warn( "" );
         }
     }
@@ -540,13 +467,13 @@ public class DefaultGraphBuilder
                 if ( plugin.isExtensions() )
                 {
                     String pluginKey = ArtifactUtils.key( plugin.getGroupId(), plugin.getArtifactId(),
-                                                          plugin.getVersion() );
+                            plugin.getVersion() );
 
                     if ( projectsMap.containsKey( pluginKey ) )
                     {
                         logger.warn( project.getName() + " uses " + plugin.getKey()
-                            + " as extensions, which is not possible within the same reactor build. "
-                            + "This plugin was pulled from the local repository!" );
+                                + " as extensions, which is not possible within the same reactor build. "
+                                + "This plugin was pulled from the local repository!" );
                     }
                 }
             }

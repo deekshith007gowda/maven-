@@ -19,12 +19,10 @@ package org.apache.maven.caching.xml;
  * under the License.
  */
 
+import java.io.InputStream;
+
 import org.apache.maven.caching.domain.CacheType;
 import org.junit.Test;
-
-import java.io.InputStream;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 public class CacheConfigTest {
 
